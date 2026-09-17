@@ -15,6 +15,7 @@
     "db:studio": "prisma studio",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:reliability": "tsx src/scripts/reliabilityChaosTest.ts",
     "lint": "eslint src --ext .ts",
     "format": "prettier --write \"src/**/*.ts\""
   },
