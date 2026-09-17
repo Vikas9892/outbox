@@ -4,6 +4,7 @@ import { EmailJobData } from '../types';
 import { sendEmail } from '../services/emailService';
 import { RateLimiterService } from '../services/rateLimiterService';
 import { RecoveryService } from '../services/recoveryService';
+import { indexEmailRecord } from '../services/searchService';
 import { prisma } from '../db/prisma';
 import { env } from '../config/env';
 
@@ -148,7 +149,7 @@ export class EmailWorker {
       });
 
       // 6. UPDATE DB TO 'sent'
-      await prisma.email.update({
+      const updated = await prisma.email.update({
         where: { id: emailId },
         data: {
           status: 'sent',
@@ -157,6 +158,9 @@ export class EmailWorker {
           error: null,
         },
       });
+
+      // Asynchronously index in Elasticsearch
+      indexEmailRecord(updated).catch(() => {});
 
       console.log(
         `[Worker] Email ${emailId} sent successfully to ${recipient}. Preview: ${result.previewUrl || 'N/A'}`,

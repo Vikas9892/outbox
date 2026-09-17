@@ -3,6 +3,7 @@ import { env } from '../config/env';
 import { CreateCampaignDTO } from '../types';
 import { EmailSchedulerService, EmailToSchedule } from './emailSchedulerService';
 import { getEtherealCredentials } from './emailService';
+import { indexEmailRecord } from './searchService';
 
 export class CampaignService {
   /**
@@ -121,6 +122,11 @@ export class CampaignService {
     }));
 
     await EmailSchedulerService.scheduleBulkEmails(emailsToSchedule);
+
+    // Asynchronously index in Elasticsearch (non-blocking)
+    createdEmails.forEach((e) => {
+      indexEmailRecord(e).catch(() => {});
+    });
 
     return {
       campaign,
